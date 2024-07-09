@@ -6,5 +6,8 @@ CREATE TABLE payments (
     reservation_id uuid NOT NULL,
     amount DECIMAL(10, 2),
     method payment_method NOT NULL,
-    status payment_status NOT NULL
+    status payment_status NOT NULL DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP
 );
