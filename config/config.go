@@ -39,7 +39,7 @@ func Load() *Config {
 			DB_PASSWORD: cast.ToString(coalesce("DB_PASSWORD", "password")),
 		},
 		Server: ServerConfig{
-			PAYMENT_PORT: cast.ToString(coalesce("PAYMENT_PORT", ":8083")),
+			PAYMENT_PORT: cast.ToString(coalesce("PAYMENT_PORT", ":50053")),
 		},
 	}
 }
