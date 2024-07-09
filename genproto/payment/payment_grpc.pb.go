@@ -25,6 +25,7 @@ type PaymentClient interface {
 	MakePayment(ctx context.Context, in *PaymentDetails, opts ...grpc.CallOption) (*Status, error)
 	GetPayment(ctx context.Context, in *ID, opts ...grpc.CallOption) (*PaymentInfo, error)
 	UpdatePayment(ctx context.Context, in *PaymentInfo, opts ...grpc.CallOption) (*Void, error)
+	SearchByReservationID(ctx context.Context, in *ID, opts ...grpc.CallOption) (*PaymentInfo, error)
 }
 
 type paymentClient struct {
@@ -62,6 +63,15 @@ func (c *paymentClient) UpdatePayment(ctx context.Context, in *PaymentInfo, opts
 	return out, nil
 }
 
+func (c *paymentClient) SearchByReservationID(ctx context.Context, in *ID, opts ...grpc.CallOption) (*PaymentInfo, error) {
+	out := new(PaymentInfo)
+	err := c.cc.Invoke(ctx, "/payment.Payment/SearchByReservationID", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PaymentServer is the server API for Payment service.
 // All implementations must embed UnimplementedPaymentServer
 // for forward compatibility
@@ -69,6 +79,7 @@ type PaymentServer interface {
 	MakePayment(context.Context, *PaymentDetails) (*Status, error)
 	GetPayment(context.Context, *ID) (*PaymentInfo, error)
 	UpdatePayment(context.Context, *PaymentInfo) (*Void, error)
+	SearchByReservationID(context.Context, *ID) (*PaymentInfo, error)
 	mustEmbedUnimplementedPaymentServer()
 }
 
@@ -84,6 +95,9 @@ func (UnimplementedPaymentServer) GetPayment(context.Context, *ID) (*PaymentInfo
 }
 func (UnimplementedPaymentServer) UpdatePayment(context.Context, *PaymentInfo) (*Void, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdatePayment not implemented")
+}
+func (UnimplementedPaymentServer) SearchByReservationID(context.Context, *ID) (*PaymentInfo, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchByReservationID not implemented")
 }
 func (UnimplementedPaymentServer) mustEmbedUnimplementedPaymentServer() {}
 
@@ -152,6 +166,24 @@ func _Payment_UpdatePayment_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Payment_SearchByReservationID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ID)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PaymentServer).SearchByReservationID(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/payment.Payment/SearchByReservationID",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PaymentServer).SearchByReservationID(ctx, req.(*ID))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Payment_ServiceDesc is the grpc.ServiceDesc for Payment service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -170,6 +202,10 @@ var Payment_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdatePayment",
 			Handler:    _Payment_UpdatePayment_Handler,
+		},
+		{
+			MethodName: "SearchByReservationID",
+			Handler:    _Payment_SearchByReservationID_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

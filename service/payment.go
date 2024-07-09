@@ -45,8 +45,8 @@ func (p *PaymentService) UpdatePayment(ctx context.Context, req *pb.PaymentInfo)
 	return &pb.Void{}, nil
 }
 
-func (p *PaymentService) SearchByReservationID(ctx context.Context, req string) (*pb.PaymentInfo, error) {
-	resp, err := p.Repo.SearchByReservationID(ctx, req)
+func (p *PaymentService) SearchByReservationID(ctx context.Context, req pb.ID) (*pb.PaymentInfo, error) {
+	resp, err := p.Repo.SearchByReservationID(ctx, req.Id)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find payment")
 	}
