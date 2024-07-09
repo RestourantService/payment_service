@@ -14,7 +14,7 @@ func NewPaymentRepo(db *sql.DB) *PaymentRepo {
 	return &PaymentRepo{DB: db}
 }
 
-func (p *PaymentRepo) MakePayment(ctx context.Context, pay *pb.PaymentDetails) (*pb.Status, error) {
+func (p *PaymentRepo) CreatePayment(ctx context.Context, pay *pb.PaymentDetails) (*pb.Status, error) {
 	query := `
 	insert into payments (
 		reservation_id, amount, method

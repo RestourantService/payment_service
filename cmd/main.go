@@ -5,6 +5,7 @@ import (
 	"net"
 	"payment_service/config"
 	pb "payment_service/genproto/payment"
+	"payment_service/pkg"
 	"payment_service/service"
 	"payment_service/storage/postgres"
 
@@ -25,7 +26,8 @@ func main() {
 	}
 	defer db.Close()
 
-	paymentService := service.NewPaymentService(db)
+	reservationClient := pkg.CreateUserClient(*cfg)
+	paymentService := service.NewPaymentService(db, reservationClient)
 	server := grpc.NewServer()
 	pb.RegisterPaymentServer(server, paymentService)
 

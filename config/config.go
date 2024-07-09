@@ -22,7 +22,8 @@ type PostgresConfig struct {
 }
 
 type ServerConfig struct {
-	PAYMENT_PORT string
+	RESERVATION_PORT string
+	PAYMENT_PORT     string
 }
 
 func Load() *Config {
@@ -39,7 +40,8 @@ func Load() *Config {
 			DB_PASSWORD: cast.ToString(coalesce("DB_PASSWORD", "password")),
 		},
 		Server: ServerConfig{
-			PAYMENT_PORT: cast.ToString(coalesce("PAYMENT_PORT", ":50053")),
+			RESERVATION_PORT: cast.ToString(coalesce("RESERVATION_PORT", ":50052")),
+			PAYMENT_PORT:     cast.ToString(coalesce("PAYMENT_PORT", ":50053")),
 		},
 	}
 }

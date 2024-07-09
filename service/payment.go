@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	pb "payment_service/genproto/payment"
+	pbr "payment_service/genproto/reservation"
 	"payment_service/storage/postgres"
 
 	"github.com/pkg/errors"
@@ -11,15 +12,24 @@ import (
 
 type PaymentService struct {
 	pb.UnimplementedPaymentServer
-	Repo *postgres.PaymentRepo
+	Repo              *postgres.PaymentRepo
+	ReservationClient pbr.ReservationClient
 }
 
-func NewPaymentService(db *sql.DB) *PaymentService {
-	return &PaymentService{Repo: postgres.NewPaymentRepo(db)}
+func NewPaymentService(db *sql.DB, reservation pbr.ReservationClient) *PaymentService {
+	return &PaymentService{
+		Repo:              postgres.NewPaymentRepo(db),
+		ReservationClient: reservation,
+	}
 }
 
-func (p *PaymentService) MakePayment(ctx context.Context, req *pb.PaymentDetails) (*pb.Status, error) {
-	resp, err := p.Repo.MakePayment(ctx, req)
+func (p *PaymentService) CreatePayment(ctx context.Context, req *pb.PaymentDetails) (*pb.Status, error) {
+	status, err := p.ReservationClient.ValidateReservation(ctx, &pbr.ID{Id: req.ReservationId})
+	if !status.Successful || err != nil {
+		return nil, errors.Wrap(err, "no such reservation")
+	}
+
+	resp, err := p.Repo.CreatePayment(ctx, req)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to make payment")
 	}
@@ -45,7 +55,7 @@ func (p *PaymentService) UpdatePayment(ctx context.Context, req *pb.PaymentInfo)
 	return &pb.Void{}, nil
 }
 
-func (p *PaymentService) SearchByReservationID(ctx context.Context, req pb.ID) (*pb.PaymentInfo, error) {
+func (p *PaymentService) SearchByReservationID(ctx context.Context, req *pb.ID) (*pb.PaymentInfo, error) {
 	resp, err := p.Repo.SearchByReservationID(ctx, req.Id)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find payment")

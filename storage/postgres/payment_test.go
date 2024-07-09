@@ -19,7 +19,7 @@ func TestMakePayment(t *testing.T) {
 		PaymentMethod: "cash",
 	}
 
-	_, err := repo.MakePayment(context.Background(), pay)
+	_, err := repo.CreatePayment(context.Background(), pay)
 	if err != nil {
 		t.Error("Error making payment")
 	}
