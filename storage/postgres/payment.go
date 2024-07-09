@@ -67,3 +67,22 @@ func (p *PaymentRepo) UpdatePayment(ctx context.Context, pay *pb.PaymentInfo) er
 
 	return err
 }
+
+func (p *PaymentRepo) SearchByReservationID(ctx context.Context, id string) (*pb.PaymentInfo, error) {
+	query := `
+	select
+		id, amount, method, status
+	from
+		payments
+	where
+		deleted_at is null and reservation_id = $1`
+
+	pay := pb.PaymentInfo{ReservationId: id}
+	err := p.DB.QueryRowContext(ctx, query, id).Scan(
+		&pay.Id, &pay.Amount, &pay.PaymentMethod, &pay.PaymentStatus)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pay, nil
+}
