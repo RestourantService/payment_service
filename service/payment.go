@@ -25,9 +25,12 @@ func NewPaymentService(db *sql.DB, reservation pbr.ReservationClient) *PaymentSe
 
 func (p *PaymentService) CreatePayment(ctx context.Context, req *pb.PaymentDetails) (*pb.Status, error) {
 	status, err := p.ReservationClient.ValidateReservation(ctx, &pbr.ID{Id: req.ReservationId})
-	if !status.Successful || err != nil {
-		return nil, errors.Wrap(err, "no such reservation")
-	}
+	if err != nil {
+        return nil, errors.Wrap(err, "failed to validate reservation")
+    }
+    if !status.Successful {
+        return nil, errors.New("reservation validation failed")
+    }
 
 	resp, err := p.Repo.CreatePayment(ctx, req)
 	if err != nil {
