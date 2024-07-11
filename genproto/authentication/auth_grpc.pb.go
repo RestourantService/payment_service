@@ -23,9 +23,8 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AuthenticationClient interface {
 	Register(ctx context.Context, in *UserDetails, opts ...grpc.CallOption) (*ID, error)
-	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*ID, error)
-	Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*Void, error)
-	RefreshToken(ctx context.Context, in *TokenRequest, opts ...grpc.CallOption) (*Void, error)
+	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
+	CheckRefreshToken(ctx context.Context, in *CheckRefreshTokenRequest, opts ...grpc.CallOption) (*CheckRefreshTokenResponse, error)
 }
 
 type authenticationClient struct {
@@ -45,8 +44,8 @@ func (c *authenticationClient) Register(ctx context.Context, in *UserDetails, op
 	return out, nil
 }
 
-func (c *authenticationClient) Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*ID, error) {
-	out := new(ID)
+func (c *authenticationClient) Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error) {
+	out := new(LoginResponse)
 	err := c.cc.Invoke(ctx, "/authentication.Authentication/Login", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -54,18 +53,9 @@ func (c *authenticationClient) Login(ctx context.Context, in *LoginRequest, opts
 	return out, nil
 }
 
-func (c *authenticationClient) Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*Void, error) {
-	out := new(Void)
-	err := c.cc.Invoke(ctx, "/authentication.Authentication/Logout", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *authenticationClient) RefreshToken(ctx context.Context, in *TokenRequest, opts ...grpc.CallOption) (*Void, error) {
-	out := new(Void)
-	err := c.cc.Invoke(ctx, "/authentication.Authentication/RefreshToken", in, out, opts...)
+func (c *authenticationClient) CheckRefreshToken(ctx context.Context, in *CheckRefreshTokenRequest, opts ...grpc.CallOption) (*CheckRefreshTokenResponse, error) {
+	out := new(CheckRefreshTokenResponse)
+	err := c.cc.Invoke(ctx, "/authentication.Authentication/CheckRefreshToken", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -77,9 +67,8 @@ func (c *authenticationClient) RefreshToken(ctx context.Context, in *TokenReques
 // for forward compatibility
 type AuthenticationServer interface {
 	Register(context.Context, *UserDetails) (*ID, error)
-	Login(context.Context, *LoginRequest) (*ID, error)
-	Logout(context.Context, *LogoutRequest) (*Void, error)
-	RefreshToken(context.Context, *TokenRequest) (*Void, error)
+	Login(context.Context, *LoginRequest) (*LoginResponse, error)
+	CheckRefreshToken(context.Context, *CheckRefreshTokenRequest) (*CheckRefreshTokenResponse, error)
 	mustEmbedUnimplementedAuthenticationServer()
 }
 
@@ -90,14 +79,11 @@ type UnimplementedAuthenticationServer struct {
 func (UnimplementedAuthenticationServer) Register(context.Context, *UserDetails) (*ID, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Register not implemented")
 }
-func (UnimplementedAuthenticationServer) Login(context.Context, *LoginRequest) (*ID, error) {
+func (UnimplementedAuthenticationServer) Login(context.Context, *LoginRequest) (*LoginResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Login not implemented")
 }
-func (UnimplementedAuthenticationServer) Logout(context.Context, *LogoutRequest) (*Void, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Logout not implemented")
-}
-func (UnimplementedAuthenticationServer) RefreshToken(context.Context, *TokenRequest) (*Void, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RefreshToken not implemented")
+func (UnimplementedAuthenticationServer) CheckRefreshToken(context.Context, *CheckRefreshTokenRequest) (*CheckRefreshTokenResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckRefreshToken not implemented")
 }
 func (UnimplementedAuthenticationServer) mustEmbedUnimplementedAuthenticationServer() {}
 
@@ -148,38 +134,20 @@ func _Authentication_Login_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Authentication_Logout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LogoutRequest)
+func _Authentication_CheckRefreshToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckRefreshTokenRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthenticationServer).Logout(ctx, in)
+		return srv.(AuthenticationServer).CheckRefreshToken(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/authentication.Authentication/Logout",
+		FullMethod: "/authentication.Authentication/CheckRefreshToken",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthenticationServer).Logout(ctx, req.(*LogoutRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Authentication_RefreshToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(TokenRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AuthenticationServer).RefreshToken(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/authentication.Authentication/RefreshToken",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthenticationServer).RefreshToken(ctx, req.(*TokenRequest))
+		return srv.(AuthenticationServer).CheckRefreshToken(ctx, req.(*CheckRefreshTokenRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -200,12 +168,8 @@ var Authentication_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Authentication_Login_Handler,
 		},
 		{
-			MethodName: "Logout",
-			Handler:    _Authentication_Logout_Handler,
-		},
-		{
-			MethodName: "RefreshToken",
-			Handler:    _Authentication_RefreshToken_Handler,
+			MethodName: "CheckRefreshToken",
+			Handler:    _Authentication_CheckRefreshToken_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
