@@ -1,0 +1,2 @@
+time=2024-07-12T17:33:04.195+05:00 level=INFO msg="SearchByReservationID method is starting"
+time=2024-07-12T17:33:04.196+05:00 level=ERROR msg="failed to find payment: sql: no rows in result set"
