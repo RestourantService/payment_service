@@ -72,7 +72,21 @@ func (p *PaymentService) GetPayment(ctx context.Context, req *pb.ID) (*pb.Paymen
 func (p *PaymentService) UpdatePayment(ctx context.Context, req *pb.PaymentInfo) (*pb.Void, error) {
 	p.Logger.Info("UpdatePayment method is starting")
 
-	err := p.Repo.UpdatePayment(ctx, req)
+	status, err := p.ReservationClient.ValidateReservation(ctx, &pbr.ID{Id: req.ReservationId})
+	if err != nil {
+		err := errors.Wrap(err, "failed to validate reservation")
+		p.Logger.Error(err.Error())
+		return nil, err
+	}
+	if !status.Successful {
+		err := errors.New("reservation validation failed")
+		p.Logger.Error(err.Error())
+		return nil, err
+	}
+
+	p.Logger.Info("Reservation has been validated")
+	
+	err = p.Repo.UpdatePayment(ctx, req)
 	if err != nil {
 		err := errors.Wrap(err, "failed to update payment")
 		p.Logger.Error(err.Error())
