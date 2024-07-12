@@ -26,7 +26,7 @@ func main() {
 	}
 	defer db.Close()
 
-	reservationClient := pkg.CreateUserClient(*cfg)
+	reservationClient := pkg.CreateReservationClient(*cfg)
 	paymentService := service.NewPaymentService(db, reservationClient)
 	server := grpc.NewServer()
 	pb.RegisterPaymentServer(server, paymentService)
