@@ -62,8 +62,20 @@ func (p *PaymentRepo) UpdatePayment(ctx context.Context, pay *pb.PaymentInfo) er
 	where
 		deleted_at IS NULL and id = $5`
 
-	_, err := p.DB.ExecContext(ctx, query,
+	res, err := p.DB.ExecContext(ctx, query,
 		pay.ReservationId, pay.Amount, pay.PaymentMethod, pay.PaymentStatus, pay.Id)
+	if err != nil {
+		return err
+	}
+
+	count, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if count == 0 {
+		return sql.ErrNoRows
+	}
 
 	return err
 }
